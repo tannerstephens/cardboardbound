@@ -12,8 +12,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .database import db
 
-PER_PAGE = 20
-
 
 @dataclass
 class Page[T]:
@@ -50,13 +48,13 @@ class IdModel(db.Base):
         return res[0]
 
     @classmethod
-    def paginate(cls, page: int) -> Page[Self]:
-        stmt = cls.select().order_by(cls.id).offset((page - 1) * PER_PAGE).limit(PER_PAGE)
+    def paginate(cls, page: int, per_page: int) -> Page[Self]:
+        stmt = cls.select().order_by(cls.id).offset((page - 1) * per_page).limit(per_page)
 
         items = db.session.scalars(stmt).all()
 
         item_count = cls.count()
-        page_count = ceil(item_count / PER_PAGE)
+        page_count = ceil(item_count / per_page)
 
         return Page(
             items,

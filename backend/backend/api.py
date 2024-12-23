@@ -5,19 +5,11 @@ from .models import Invite, Submission, User
 
 api = Blueprint("api", __name__, url_prefix="/api")
 
-PER_PAGE = 20
+MAX_PER_PAGE = 100
+MIN_PER_PAGE = 10
+DEFAULT_PER_PAGE = 20
 
 from backend.context import get_user
-
-
-def authenticated(func):
-    def wrapper(*args, **kwargs):
-        if get_user() is None:
-            return "", 401
-
-        return func(*args, **kwargs)
-
-    return wrapper
 
 
 def api_response(error_message: str | None = None, **kwargs):
@@ -33,12 +25,25 @@ def api_response(error_message: str | None = None, **kwargs):
     return jsonify(response)
 
 
+def authenticated(func):
+    def wrapper(*args, **kwargs):
+        if get_user() is None:
+            return api_response(error_message="Unauthenticated"), 401
+
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
 @api.route("/submissions", methods=["GET"])
 @authenticated
 def list_submissions():
     page = max(1, int(request.args.get("p", 1)))
+    per_page = min(
+        MAX_PER_PAGE, max(MIN_PER_PAGE, int(request.args.get("per_page", DEFAULT_PER_PAGE)))
+    )
 
-    page = Submission.paginate(page)
+    page = Submission.paginate(page, per_page)
 
     return api_response(page=page)
 

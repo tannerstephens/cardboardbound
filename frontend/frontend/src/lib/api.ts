@@ -1,3 +1,5 @@
+import { type SubmissionResponse } from './api_types';
+
 export const BASE_API_ROUTE = '/api';
 
 export default {
@@ -32,5 +34,9 @@ export default {
 	logout: () =>
 		fetch(`${BASE_API_ROUTE}/session`, {
 			method: 'DELETE'
-		})
+		}),
+	submissions: (page: number = 1, per_page: number = 20): Promise<SubmissionResponse> =>
+		fetch(`${BASE_API_ROUTE}/submissions?p=${page}&per_page=${per_page}`).then((resp) =>
+			resp.json()
+		)
 };

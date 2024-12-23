@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { api } from '$lib';
 	import { getToastStore, type ToastSettings } from '@skeletonlabs/skeleton';
 
@@ -23,7 +24,7 @@
 			.then((resp) => resp.json())
 			.then((json) => {
 				if (json.success) {
-					window.location.assign('/');
+					goto('/');
 				} else {
 					const t: ToastSettings = {
 						message: json.error_message,
