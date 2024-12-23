@@ -1,7 +1,9 @@
+from datetime import date
+
 import click
 from flask import Blueprint
 
-from .models import User
+from .models import Invite, User
 
 commands = Blueprint("commands", __name__, cli_group=None)
 
@@ -21,3 +23,10 @@ def make_admin(username):
     if user:
         user.admin = True
         user.save()
+
+
+@commands.cli.command("make-invite")
+def make_invite():
+    invite = Invite(date(3006, 1, 1)).save()
+
+    click.echo(invite.code)

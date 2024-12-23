@@ -148,15 +148,15 @@ class Invite(IdModel):
     used: Mapped[bool] = mapped_column(default=False)
 
     def __init__(self, expiration: date):
-        self.code = "".join(choice(ascii_letters) for _ in range(10))
+        self.code = "".join(choice(ascii_letters) for _ in range(8))
         self.expiration = expiration
 
     @classmethod
     def get_active_invite(cls, code: str):
         stmt = (
             cls.select()
-            .where(cls.expiration <= func.now())
-            .where(not cls.used)
+            .where(cls.expiration >= func.now())
+            .where(cls.used == False)
             .where(cls.code == code)
         )
 

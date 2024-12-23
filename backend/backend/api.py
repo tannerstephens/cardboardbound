@@ -51,7 +51,7 @@ def create_submission():
         return api_response(False)
 
     if (title := data.get("title")) is None:
-        return api_response(False, error="title is required")
+        return api_response(False, error="Title is required")
 
     description = data.get("description")
 
@@ -68,27 +68,29 @@ def register():
         return api_response(error_message="root level should be object")
 
     if (username := data.get("username")) is None:
-        return api_response(error_message="username is required")
+        return api_response(error_message="Username is required")
 
     if (password := data.get("password")) is None:
-        return api_response(error_message="password is required")
+        return api_response(error_message="Password is required")
 
     if (invite_code := data.get("invite")) is None:
-        return api_response(error_message="invite is required")
+        return api_response(error_message="Invite is required")
 
     if not User.validate_password(password):
-        return api_response(error_message="password must be at least 8 characters")
+        return api_response(error_message="Password must be at least 8 characters")
 
     if User.get_by_username(username):
-        return api_response(error_message="username already taken")
+        return api_response(error_message="Username already taken")
 
     if (invite := Invite.get_active_invite(invite_code)) is None:
-        return api_response(error_message="invite is not valid")
+        return api_response(error_message="Invite is not valid")
 
     new_user = User(username, password).save()
 
     invite.used = True
     invite.save()
+
+    set_user(new_user)
 
     return api_response(item=new_user)
 
@@ -101,13 +103,13 @@ def login():
         return api_response(error_message="root level should be object")
 
     if (username := data.get("username")) is None:
-        return api_response(error_message="username is required")
+        return api_response(error_message="Username is required")
 
     if (password := data.get("password")) is None:
-        return api_response(error_message="password is required")
+        return api_response(error_message="Password is required")
 
     if (user := User.get_by_username(username)) is None or not user.check_password(password):
-        return api_response(error_message="username or password incorrect")
+        return api_response(error_message="Username or password incorrect")
 
     set_user(user)
 
