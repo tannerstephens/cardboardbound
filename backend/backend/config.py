@@ -25,5 +25,5 @@ if not os.environ.get("SECRET_KEY"):
 
 class Config(object):
     SECRET_KEY = os.environ.get("SECRET_KEY", key)
-    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URI", "sqlite:///backend.db")
+    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URI", "sqlite:////config/database.db")
     IMAGE_STORAGE_DIRECTORY = os.environ.get("IMAGE_STORAGE_DIRECTORY", "/tmp")

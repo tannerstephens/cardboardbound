@@ -3,12 +3,10 @@ services:
     image: trainrex/cardboardbound-backend
     build: ./backend
     restart: unless-stopped
-    user: "${MY_UID}:${MY_GID}"
   frontend:
     image: trainrex/cardboardbound-frontend
     build: ./frontend
     restart: unless-stopped
-    user: "${MY_UID}:${MY_GID}"
   webserver:
     image: nginx
     volumes:

@@ -3,6 +3,8 @@ services:
     image: trainrex/cardboardbound-backend
     build: ./backend
     command: "python dev.py"
+    environment:
+      - DATABASE_URI=sqlite:///database.db
     volumes:
       - ./backend:/home/appuser
     restart: unless-stopped

@@ -64,6 +64,7 @@
 					<a href="/login" class="btn hover:variant-soft-primary">Login</a>
 					<a href="/register" class="btn hover:variant-soft-primary">Register</a>
 				{:else}
+					<a href="/submissions" class="btn hover:variant-soft-primary">Submissions</a>
 					<button class="btn hover:variant-soft-primary" on:click={logout}>Logout</button>
 				{/if}
 				<LightSwitch />
