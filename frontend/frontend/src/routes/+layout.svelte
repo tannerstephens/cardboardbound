@@ -1,6 +1,15 @@
 <script lang="ts">
 	import '../app.postcss';
-	import { AppShell, AppBar, LightSwitch, initializeStores, Toast } from '@skeletonlabs/skeleton';
+	import {
+		AppShell,
+		AppBar,
+		LightSwitch,
+		initializeStores,
+		Toast,
+		autoModeWatcher,
+		modeCurrent,
+		setInitialClassState
+	} from '@skeletonlabs/skeleton';
 
 	import { logo } from '$lib';
 	import { api } from '$lib';
@@ -15,6 +24,11 @@
 	let me: User | null = null;
 
 	onMount(() => {
+		autoModeWatcher();
+
+		modeCurrent.set(window.localStorage.getItem('modeUserPrefers') == 'true');
+		setInitialClassState();
+
 		api
 			.me()
 			.then((resp) => resp.json())
