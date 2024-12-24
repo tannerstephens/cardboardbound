@@ -2,6 +2,8 @@ import os
 
 """ GENERATE SECRET KEY """
 
+key = None
+
 if not os.environ.get("SECRET_KEY"):
     # Attempt to read the secret from the secret file
     # This will fail if the secret has not been written

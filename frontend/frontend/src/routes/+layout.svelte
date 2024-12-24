@@ -11,7 +11,7 @@
 		setInitialClassState
 	} from '@skeletonlabs/skeleton';
 
-	import { logo } from '$lib';
+	import { logo, pawn } from '$lib';
 	import { api } from '$lib';
 
 	import { onMount } from 'svelte';
@@ -49,14 +49,20 @@
 	<svelte:fragment slot="header">
 		<AppBar>
 			<svelte:fragment slot="lead">
-				<a href="/"
-					><img
+				<a href="/">
+					<img
+						src={pawn}
+						alt="Cardboard Bound"
+						title="Go to homepage"
+						class="h-12 dark:invert block md:hidden"
+					/>
+					<img
 						src={logo}
 						alt="Cardboard Bound"
 						title="Go to homepage"
-						class="h-12 dark:invert"
-					/></a
-				>
+						class="h-12 dark:invert hidden md:block"
+					/>
+				</a>
 			</svelte:fragment>
 
 			<svelte:fragment slot="trail">

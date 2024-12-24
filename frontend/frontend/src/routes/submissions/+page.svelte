@@ -21,7 +21,7 @@
 		page: pageNum - 1,
 		limit: perPage,
 		size: size,
-		amounts: [15, 30, 60, 90]
+		amounts: [12, 24, 48, 60]
 	} satisfies PaginationSettings;
 
 	const loadSubmissions = () => {

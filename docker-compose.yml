@@ -2,8 +2,6 @@ services:
   backend:
     image: trainrex/cardboardbound-backend
     restart: unless-stopped
-    environment:
-      - name=value
   frontend:
     image: trainrex/cardboardbound-frontend
     restart: unless-stopped
