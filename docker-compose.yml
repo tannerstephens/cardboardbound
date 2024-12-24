@@ -1,11 +1,11 @@
 services:
   backend:
     image: trainrex/cardboardbound-backend
-    build: ./backend
     restart: unless-stopped
+    environment:
+      - name=value
   frontend:
     image: trainrex/cardboardbound-frontend
-    build: ./frontend
     restart: unless-stopped
   webserver:
     image: nginx

@@ -17,3 +17,21 @@ tasks:
   migrate:
     cmds:
       - MY_UID="$(id -u)" MY_GID="$(id -g)" docker compose -f docker-compose.dev.yml run --rm backend alembic upgrade head
+  build-backend:
+    cmds:
+      - ./build/build-backend.sh
+  build-frontend:
+    cmds:
+      - ./build/build-frontend.sh
+  build:
+    deps: [build-backend, build-frontend]
+  push-backend:
+    deps: [build-backend]
+    cmds:
+      - ./build/push-backend.sh
+  push-frontend:
+    deps: [build-frontend]
+    cmds:
+      - ./build/push-frontend.sh
+  push:
+    deps: [push-backend, push-frontend]
