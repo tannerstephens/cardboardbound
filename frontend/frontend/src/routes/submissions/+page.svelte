@@ -9,8 +9,10 @@
 
 	import { onMount } from 'svelte';
 
+	const pageAmounts = [12, 24, 48, 60];
+
 	let pageNum = Number(page.url.searchParams.get('p') || 1);
-	let perPage = Number(page.url.searchParams.get('per_page') || 15);
+	let perPage = Number(page.url.searchParams.get('per_page') || pageAmounts[0]);
 
 	let submissions: Array<Submission> = [],
 		size = 0;
@@ -21,7 +23,7 @@
 		page: pageNum - 1,
 		limit: perPage,
 		size: size,
-		amounts: [12, 24, 48, 60]
+		amounts: pageAmounts
 	} satisfies PaginationSettings;
 
 	const loadSubmissions = () => {

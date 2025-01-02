@@ -32,7 +32,7 @@ class Page[T]:
 class IdModel(db.Base):
     __abstract__ = True
 
-    serializable: list[str] = []
+    serializable: list[str] = ["id"]
 
     id: Mapped[int] = mapped_column(primary_key=True)
 
@@ -49,7 +49,9 @@ class IdModel(db.Base):
 
     @classmethod
     def paginate(cls, page: int, per_page: int) -> Page[Self]:
-        stmt = cls.select().order_by(cls.id).offset((page - 1) * per_page).limit(per_page)
+        stmt = (
+            cls.select().order_by(cls.id).offset((page - 1) * per_page).limit(per_page)
+        )
 
         items = db.session.scalars(stmt).all()
 
@@ -72,6 +74,10 @@ class IdModel(db.Base):
 
         return self
 
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
     @classmethod
     def get_by_id(cls, oid: int):
         return db.session.get(cls, oid)
@@ -80,10 +86,15 @@ class IdModel(db.Base):
 class User(IdModel):
     __tablename__ = "users"
 
+    def _set_password(self, password: str):
+        self.password_hash = self.hash_password(password)
+
     serializable = ["username"]
 
     username: Mapped[str] = mapped_column(unique=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(nullable=False)
+
+    password = property(fset=_set_password)
 
     admin: Mapped[bool] = mapped_column(default=False)
 
@@ -91,7 +102,7 @@ class User(IdModel):
 
     def __init__(self, username: str, password: str):
         self.username = username
-        self.password_hash = self.hash_password(password)
+        self._set_password(password)
 
     @classmethod
     def validate_password(cls, password: str):

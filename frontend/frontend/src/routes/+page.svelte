@@ -21,19 +21,7 @@
 
 		api
 			.submit(gameTitle, description)
-			.then((resp) => {
-				if (resp.status !== 200) {
-					const t: ToastSettings = {
-						message: 'Something went wrong, please try again',
-						background: 'variant-filled-error'
-					};
-					toastStore.trigger(t);
-					// @ts-ignore
-					this.reject(resp);
-				}
-
-				return resp.json();
-			})
+			.then((resp) => resp.json())
 			.then((json) => {
 				if (json.success) {
 					gameTitle = '';
@@ -47,7 +35,7 @@
 					toastStore.trigger(t);
 				} else {
 					const t: ToastSettings = {
-						message: json.error_message,
+						message: json.errors.join("\n"),
 						background: 'variant-filled-error'
 					};
 					toastStore.trigger(t);
