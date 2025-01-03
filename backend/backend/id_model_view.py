@@ -193,4 +193,4 @@ class IdModelView:
         group = GroupApi.as_view(f"{cls.name}-group", cls)
 
         app.add_url_rule(f"/{cls.name}/{cls.item_key}", view_func=items)
-        app.add_url_rule(f"/{cls.name}/", view_func=group)
+        app.add_url_rule(f"/{cls.name}", view_func=group)
