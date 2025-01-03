@@ -8,7 +8,7 @@ export type Submission = {
 
 export type SubmissionResponse = {
 	success: boolean;
-	error_message: string;
+	errors: Array<string>;
 	page: {
 		items: Array<Submission>;
 		next_page: number | null;

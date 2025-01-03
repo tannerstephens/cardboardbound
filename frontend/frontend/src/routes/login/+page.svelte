@@ -25,7 +25,7 @@
 					window.location.assign('/');
 				} else {
 					const t: ToastSettings = {
-						message: json.error_message,
+						message: json.errors.join('\n'),
 						background: 'variant-filled-error'
 					};
 					toastStore.trigger(t);

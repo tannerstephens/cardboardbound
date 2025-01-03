@@ -1,6 +1,7 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, request
 
 from .context import clear_user, get_user, set_user
+from .id_model_view import IdModelView, api_response
 from .models import Invite, Submission, User
 
 api = Blueprint("api", __name__, url_prefix="/api")
@@ -12,92 +13,117 @@ DEFAULT_PER_PAGE = 20
 from backend.context import get_user
 
 
-def api_response(error_message: str | None = None, **kwargs):
-    response = {
-        "success": error_message is None,
-    }
-
-    if error_message:
-        kwargs["error_message"] = error_message
-
-    response.update(kwargs)
-
-    return jsonify(response)
-
-
 def authenticated(func):
     def wrapper(*args, **kwargs):
         if get_user() is None:
-            return api_response(error_message="Unauthenticated"), 401
+            return api_response(errors=["Unauthenticated"]), 401
 
         return func(*args, **kwargs)
 
     return wrapper
 
 
-@api.route("/submissions", methods=["GET"])
-@authenticated
-def list_submissions():
-    page = max(1, int(request.args.get("p", 1)))
-    per_page = min(
-        MAX_PER_PAGE, max(MIN_PER_PAGE, int(request.args.get("per_page", DEFAULT_PER_PAGE)))
-    )
+class SubmissionView(IdModelView):
+    model = Submission
+    name = "submissions"
 
-    page = Submission.paginate(page, per_page)
+    required_create_params = ["title"]
+    optional_create_params = ["description"]
 
-    return api_response(page=page)
+    updatable_params = ["title", "description"]
+
+    @classmethod
+    @authenticated
+    def list(cls):
+        return super().list()
+
+    @classmethod
+    @authenticated
+    def read(cls, key):
+        return super().read(key)
+
+    @classmethod
+    @authenticated
+    def update(cls, key):
+        return super().update(key)
+
+    @classmethod
+    @authenticated
+    def delete(cls, key):
+        return super().delete(key)
 
 
-@api.route("/submissions", methods=["POST"])
-def create_submission():
-    data = request.json
-
-    if not isinstance(data, dict):
-        return api_response(False)
-
-    if (title := data.get("title")) is None:
-        return api_response(False, error="Title is required")
-
-    description = data.get("description")
-
-    new_submission = Submission(title, description).save()
-
-    return api_response(item=new_submission)
+SubmissionView.register_view(api)
 
 
-@api.route("/users", methods=["POST"])
-def register():
-    data = request.json
+class UserView(IdModelView):
+    model: type[User] = User
+    name = "users"
 
-    if not isinstance(data, dict):
-        return api_response(error_message="root level should be object")
+    required_create_params = ["username", "password"]
 
-    if (username := data.get("username")) is None:
-        return api_response(error_message="Username is required")
+    updatable_params = ["password"]
 
-    if (password := data.get("password")) is None:
-        return api_response(error_message="Password is required")
+    item_key = "<key>"
 
-    if (invite_code := data.get("invite")) is None:
-        return api_response(error_message="Invite is required")
+    @classmethod
+    def get_by_key(cls, key):
+        return cls.model.get_by_username(key)
 
-    if not User.validate_password(password):
-        return api_response(error_message="Password must be at least 8 characters")
+    @classmethod
+    def validate_creation_params(cls, **kwargs):
+        errors = []
 
-    if User.get_by_username(username):
-        return api_response(error_message="Username already taken")
+        if not User.validate_password(kwargs["password"]):
+            errors.append("Password must be at least 8 characters")
 
-    if (invite := Invite.get_active_invite(invite_code)) is None:
-        return api_response(error_message="Invite is not valid")
+        if User.get_by_username(kwargs["username"]) is not None:
+            errors.append("Username already in use")
 
-    new_user = User(username, password).save()
+        return errors
 
-    invite.used = True
-    invite.save()
+    @classmethod
+    def _pre_create_hook(cls):
+        invite_params, errors = cls.filtered_params(["invite"], True)
 
-    set_user(new_user)
+        if errors:
+            return list(errors)
 
-    return api_response(item=new_user)
+        if (invite := Invite.get_active_invite(invite_params["invite"])) is None:
+            return ["Invalid invite"]
+
+    @classmethod
+    def _post_create_hook(cls, new: User):
+        invite_params = cls.filtered_params(["invite"], True)
+
+        invite = Invite.get_active_invite(invite_params["invite"])
+
+        invite.used = True
+
+        invite.save()
+
+    @classmethod
+    def current_key_is_user(cls, key):
+        return (user := get_user()) and user.username == key
+
+    @classmethod
+    @authenticated
+    def update(cls, key):
+        if not cls.current_key_is_user(key):
+            return api_response(["Unauthorized"]), 401
+
+        return super().update(key)
+
+    @classmethod
+    @authenticated
+    def delete(cls, key):
+        if not cls.current_key_is_user(key):
+            return api_response(["Unauthorized"]), 401
+
+        return super().delete(key)
+
+
+UserView.register_view(api)
 
 
 @api.route("/session", methods=["POST"])
@@ -105,16 +131,18 @@ def login():
     data = request.json
 
     if not isinstance(data, dict):
-        return api_response(error_message="root level should be object")
+        return api_response(errors=["root level should be object"])
 
     if (username := data.get("username")) is None:
-        return api_response(error_message="Username is required")
+        return api_response(errors=["Username is required"])
 
     if (password := data.get("password")) is None:
-        return api_response(error_message="Password is required")
+        return api_response(errors=["Password is required"])
 
-    if (user := User.get_by_username(username)) is None or not user.check_password(password):
-        return api_response(error_message="Username or password incorrect")
+    if (user := User.get_by_username(username)) is None or not user.check_password(
+        password
+    ):
+        return api_response(errors=["Username or password incorrect"])
 
     set_user(user)
 
