@@ -1,4 +1,4 @@
-from enum import Enum
+import enum
 from dataclasses import dataclass
 from datetime import date
 from hashlib import pbkdf2_hmac
@@ -8,24 +8,16 @@ from random import choice
 from string import ascii_letters
 from typing import Optional, Self
 
-from sqlalchemy import ForeignKey, func, select
+from sqlalchemy import ForeignKey, func, select, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .database import db
 
-class Status(Enum):
+class Status(str, enum.Enum):
+    '''Inherit from str to make the class serializable'''
     New    = "NEW"
     Open   = "OPEN"
     Closed = "CLOSED"
-    
-    def __str__(self):
-        return self.value
-
-    def serialize(self):
-        """Needed for status to be serializable"""
-        return {
-            "status": self.status
-        }
 
 @dataclass
 class Page[T]:
@@ -147,12 +139,12 @@ class User(IdModel):
 class Submission(IdModel):
     __tablename__ = "submissions"
 
-    serializable = ["title", "description", "status" "assignee" ]
+    serializable = ["title", "description", "status", "assignee" ]
 
     title: Mapped[str] = mapped_column(nullable=False)
     description: Mapped[Optional[str]] = mapped_column(nullable=True)
 
-    status: Mapped[bool] = mapped_column(default=Status.New, nullable=False)
+    status: Mapped[Status] = mapped_column(Enum(Status),default=Status.New, nullable=False)
 
     assignee_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
     assignee: Mapped[Optional["User"]] = relationship(back_populates="assignments")

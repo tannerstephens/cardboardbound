@@ -28,9 +28,9 @@ class SubmissionView(IdModelView):
     name = "submissions"
 
     required_create_params = ["title"]
-    optional_create_params = ["description"]
+    optional_create_params = ["status", "description"]
 
-    updatable_params = ["title", "description"]
+    updatable_params = ["title", "status", "description"]
 
     @classmethod
     @authenticated
