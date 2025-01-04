@@ -1,3 +1,4 @@
+from enum import Enum
 from dataclasses import dataclass
 from datetime import date
 from hashlib import pbkdf2_hmac
@@ -12,6 +13,19 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .database import db
 
+class Status(Enum):
+    New    = "NEW"
+    Open   = "OPEN"
+    Closed = "CLOSED"
+    
+    def __str__(self):
+        return self.value
+
+    def serialize(self):
+        """Needed for status to be serializable"""
+        return {
+            "status": self.status
+        }
 
 @dataclass
 class Page[T]:
@@ -133,16 +147,15 @@ class User(IdModel):
 class Submission(IdModel):
     __tablename__ = "submissions"
 
-    serializable = ["title", "description", "reviewed", "assignee", "resolved"]
+    serializable = ["title", "description", "status" "assignee" ]
 
     title: Mapped[str] = mapped_column(nullable=False)
     description: Mapped[Optional[str]] = mapped_column(nullable=True)
 
-    reviewed: Mapped[bool] = mapped_column(default=False, nullable=False)
+    status: Mapped[bool] = mapped_column(default=Status.New, nullable=False)
 
     assignee_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
     assignee: Mapped[Optional["User"]] = relationship(back_populates="assignments")
-    resolved: Mapped[bool] = mapped_column(nullable=False, default=False)
 
     def __init__(self, title: str, description: Optional[str]):
         self.title = title
