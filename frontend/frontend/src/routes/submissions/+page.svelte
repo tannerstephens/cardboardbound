@@ -62,6 +62,11 @@
 			<div class="card p-4">
 				<header class="card-header">
 					<h1 class="text-5xl font-extrabold dark:text-white">{submission.title}</h1>
+					<select id="status" style="background-color: blue">{submission.status}
+						<option value="New">New</option>
+						<option value="Open">Open</option>
+						<option value="Closed">Closed</option>
+					</select>
 				</header>
 				<section class="p-4 break-words"><div>{submission.description}</div></section>
 			</div>

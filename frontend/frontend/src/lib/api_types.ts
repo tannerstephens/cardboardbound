@@ -1,8 +1,7 @@
 export type Submission = {
 	assignee: number | null;
 	description: string | null;
-	resolved: boolean;
-	reviewed: boolean;
+	status: string;
 	title: string;
 };
 
