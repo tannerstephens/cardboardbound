@@ -4,15 +4,20 @@
 
 	import { type Submission } from '$lib/api_types';
 
+	import { Status } from '$lib/enums';
+
 	import { Paginator, type PaginationSettings } from '@skeletonlabs/skeleton';
 	import { goto } from '$app/navigation';
 
 	import { onMount } from 'svelte';
 
+
 	const pageAmounts = [12, 24, 48, 60];
 
 	let pageNum = Number(page.url.searchParams.get('p') || 1);
 	let perPage = Number(page.url.searchParams.get('per_page') || pageAmounts[0]);
+
+	let statusKeys= Object.keys(Status);
 
 	let submissions: Array<Submission> = [],
 		size = 0;
@@ -62,10 +67,10 @@
 			<div class="card p-4">
 				<header class="card-header">
 					<h1 class="text-5xl font-extrabold dark:text-white">{submission.title}</h1>
-					<select id="status" style="background-color: blue">{submission.status}
-						<option value="New">New</option>
-						<option value="Open">Open</option>
-						<option value="Closed">Closed</option>
+					<select id="Status" style="background-color: blue">{submission.status}
+						{#each statusKeys as status}
+							<option value={status}>{status}</option>
+						{/each}
 					</select>
 				</header>
 				<section class="p-4 break-words"><div>{submission.description}</div></section>
