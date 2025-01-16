@@ -23,6 +23,17 @@ def authenticated(func):
     return wrapper
 
 
+def admin_only(func):
+    @authenticated
+    def wrapper(*args, **kwargs):
+        if not get_user().admin:
+            return api_response(errors=["Unauthorized"]), 403
+
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
 class SubmissionView(IdModelView):
     model = Submission
     name = "submissions"
@@ -84,16 +95,22 @@ class UserView(IdModelView):
 
     @classmethod
     def _pre_create_hook(cls):
+        if User.empty():
+            return []
+
         invite_params, errors = cls.filtered_params(["invite"], True)
 
         if errors:
             return list(errors)
 
-        if (invite := Invite.get_active_invite(invite_params["invite"])) is None:
+        if Invite.get_active_invite(invite_params["invite"]) is None:
             return ["Invalid invite"]
 
     @classmethod
     def _post_create_hook(cls, new: User):
+        if User.empty():
+            new.admin = True
+
         invite_params = cls.filtered_params(["invite"], True)
 
         invite = Invite.get_active_invite(invite_params["invite"])
@@ -103,13 +120,18 @@ class UserView(IdModelView):
         invite.save()
 
     @classmethod
-    def current_key_is_user(cls, key):
-        return (user := get_user()) and user.username == key
+    def current_key_is_user_or_admin(cls, key):
+        return (user := get_user()) and (user.username == key or user.admin)
+
+    @classmethod
+    @admin_only
+    def list(cls):
+        return super().list()
 
     @classmethod
     @authenticated
     def update(cls, key):
-        if not cls.current_key_is_user(key):
+        if not cls.current_key_is_user_or_admin(key):
             return api_response(["Unauthorized"]), 401
 
         return super().update(key)
@@ -117,7 +139,7 @@ class UserView(IdModelView):
     @classmethod
     @authenticated
     def delete(cls, key):
-        if not cls.current_key_is_user(key):
+        if not cls.current_key_is_user_or_admin(key):
             return api_response(["Unauthorized"]), 401
 
         return super().delete(key)
@@ -139,9 +161,7 @@ def login():
     if (password := data.get("password")) is None:
         return api_response(errors=["Password is required"])
 
-    if (user := User.get_by_username(username)) is None or not user.check_password(
-        password
-    ):
+    if (user := User.get_by_username(username)) is None or not user.check_password(password):
         return api_response(errors=["Username or password incorrect"])
 
     set_user(user)
@@ -158,3 +178,34 @@ def me():
 def logout():
     clear_user()
     return api_response()
+
+
+class InviteView(IdModelView):
+    model = Invite
+
+    optional_create_params = ["expiration"]
+
+    @classmethod
+    @admin_only
+    def create(cls):
+        return super().create()
+
+    @classmethod
+    @admin_only
+    def list(cls):
+        return super().list()
+
+    @classmethod
+    @admin_only
+    def read(cls, key):
+        return super().read(key)
+
+    @classmethod
+    @admin_only
+    def update(cls, key):
+        return super().update(key)
+
+    @classmethod
+    @admin_only
+    def delete(cls, key):
+        return super().delete(key)

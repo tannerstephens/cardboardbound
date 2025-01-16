@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 from hashlib import pbkdf2_hmac
 from math import ceil
 from os import urandom
@@ -48,10 +48,15 @@ class IdModel(db.Base):
         return res[0]
 
     @classmethod
+    def empty(cls) -> bool:
+        stmt = select(func.count(cls.id)).limit(1)
+        res = db.session.execute(stmt).one()
+
+        return res[0] == 0
+
+    @classmethod
     def paginate(cls, page: int, per_page: int) -> Page[Self]:
-        stmt = (
-            cls.select().order_by(cls.id).offset((page - 1) * per_page).limit(per_page)
-        )
+        stmt = cls.select().order_by(cls.id).offset((page - 1) * per_page).limit(per_page)
 
         items = db.session.scalars(stmt).all()
 
@@ -89,7 +94,7 @@ class User(IdModel):
     def _set_password(self, password: str):
         self.password_hash = self.hash_password(password)
 
-    serializable = ["username"]
+    serializable = ["username", "admin"]
 
     username: Mapped[str] = mapped_column(unique=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(nullable=False)
@@ -152,13 +157,15 @@ class Submission(IdModel):
 class Invite(IdModel):
     __tablename__ = "invites"
 
+    serializable = ["code", "expiration", "used"]
+
     code: Mapped[str] = mapped_column(nullable=False)
     expiration: Mapped[date] = mapped_column(nullable=False)
     used: Mapped[bool] = mapped_column(default=False)
 
-    def __init__(self, expiration: date):
+    def __init__(self, expiration: date | None = None):
         self.code = "".join(choice(ascii_letters) for _ in range(8))
-        self.expiration = expiration
+        self.expiration = expiration or (date.today() + timedelta(days=7))
 
     @classmethod
     def get_active_invite(cls, code: str):

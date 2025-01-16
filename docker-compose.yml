@@ -1,9 +1,9 @@
 services:
   backend:
-    image: trainrex/cardboardbound-backend
+    image: ghcr.io/tannerstephens/cardboardbound-backend:latest
     restart: unless-stopped
   frontend:
-    image: trainrex/cardboardbound-frontend
+    image: ghcr.io/tannerstephens/cardboardbound-frontend:latest
     restart: unless-stopped
   webserver:
     image: nginx
@@ -14,3 +14,4 @@ services:
       - frontend
     ports:
       - "80:80"
+    restart: unless-stopped

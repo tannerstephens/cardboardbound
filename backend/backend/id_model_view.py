@@ -93,9 +93,7 @@ class IdModelView:
     @classmethod
     def list(cls):
         page = max(1, int(request.args.get("p", 1)))
-        per_page = min(
-            MAX_PER_PAGE, max(1, int(request.args.get("per_page", DEFAULT_PER_PAGE)))
-        )
+        per_page = min(MAX_PER_PAGE, max(1, int(request.args.get("per_page", DEFAULT_PER_PAGE))))
 
         page = cls.model.paginate(page, per_page)
 
@@ -121,9 +119,7 @@ class IdModelView:
             return api_response(errors=pre_create_errors)
 
         required_params, rerrors = cls.filtered_params(cls.required_create_params, True)
-        optional_params, oerrors = cls.filtered_params(
-            cls.optional_create_params, False
-        )
+        optional_params, oerrors = cls.filtered_params(cls.optional_create_params, False)
 
         errors = list(rerrors | oerrors)
 
@@ -135,9 +131,11 @@ class IdModelView:
         if errors := cls.validate_creation_params(**params):
             return api_response(errors=list(errors))
 
-        new_instance = cls.model(**params).save()
+        new_instance = cls.model(**params)
 
         cls._post_create_hook(new_instance)
+
+        new_instance.save()
 
         return api_response(item=new_instance), 201
 
