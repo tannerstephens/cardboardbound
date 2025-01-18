@@ -59,6 +59,11 @@
 		goto(`?${page.url.searchParams.toString()}`);
 		loadSubmissions();
 	};
+
+	const onStatusChange = () => {
+
+	};
+
 </script>
 
 <div class="container mx-auto">
